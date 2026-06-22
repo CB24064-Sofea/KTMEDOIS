@@ -335,5 +335,24 @@ VALUES
 );
 
 -- =====================================================
+-- PATCH : MODULE 4 ADDITIONS
+-- =====================================================
+
+-- Add penalty column to invoice table
+ALTER TABLE invoice ADD COLUMN IF NOT EXISTS penalty DECIMAL(12,2) DEFAULT 0.00 AFTER credit_note;
+
+-- Add more staff for demo
+INSERT IGNORE INTO ktmb_staff VALUES ('STF002','Siti Nora','Finance Officer');
+INSERT IGNORE INTO ktmb_staff VALUES ('STF003','Hafiz Rahman','Manager');
+
+-- Add more sample invoices with various statuses for Module 4 testing
+INSERT IGNORE INTO invoice (DO_ID, billing_address, invoice_num, description, invoice_date, subtotal, tax, credit_note, penalty, total, invoice_status, payment_status)
+VALUES
+('DO001','Jalan Sultan Hishamuddin, KL','INV2026002','Supply of signal equipment','2026-05-15',8000.00,480.00,0.00,80.00,8400.00,'Submitted','Pending'),
+('DO001','Jalan Sultan Hishamuddin, KL','INV2026003','Track maintenance tools','2026-05-20',12000.00,720.00,200.00,0.00,12520.00,'Under Review','Pending'),
+('DO001','Jalan Sultan Hishamuddin, KL','INV2026004','Station renovation materials','2026-06-01',5500.00,330.00,0.00,55.00,5775.00,'Finance Review','Pending'),
+('DO001','Jalan Sultan Hishamuddin, KL','INV2026005','Safety equipment supply','2026-06-10',3200.00,192.00,0.00,0.00,3392.00,'Rejected','Pending');
+
+-- =====================================================
 -- END OF KTM eDOIS DATABASE
 -- =====================================================
