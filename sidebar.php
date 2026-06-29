@@ -256,6 +256,14 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </li>
 
             <div class="nav-section-title">Invoices & Claims (M03)</div>
+            
+            <li>
+                <a href="dashboard.php" class="nav-item <?php echo ($current_page == 'dashboard.php') ? 'active' : ''; ?>">
+                   <span class="nav-icon"></span>
+                   <span class="nav-text">Invoice Dashboard</span>
+                </a>
+            </li>
+            
             <li>
                 <a href="create_inv.php" class="nav-item <?php echo ($current_page == 'create_inv.php') ? 'active' : ''; ?>">
                    <span class="nav-icon"></span>
