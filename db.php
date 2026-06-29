@@ -1,6 +1,22 @@
 <?php
 // Change 3307 to 3306 if you use 3306 port
-define('DB_PORT', 3307); 
+define('DB_PORT', 3307);
+
+if (!defined('APP_BASE_PATH')) {
+    $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '/');
+    $segments = array_values(array_filter(explode('/', trim(dirname($scriptName), '/'))));
+    if (!empty($segments) && preg_match('/^m[1-4]$/', end($segments))) {
+        array_pop($segments);
+    }
+    define('APP_BASE_PATH', empty($segments) ? '' : '/' . implode('/', $segments));
+}
+
+if (!function_exists('app_url')) {
+    function app_url(string $path = ''): string {
+        $path = ltrim($path, '/');
+        return APP_BASE_PATH . ($path !== '' ? '/' . $path : '');
+    }
+}
 
 /**
  * Class Database
