@@ -11,20 +11,15 @@ $current_page = basename($_SERVER['PHP_SELF']);
 $userRole = 'Guest';
 $userName = 'Anonymous';
 
-// Determine logged-in context from Module 1 auth matrices
+// Determine logged-in context
 if (isset($_SESSION['vendor_auth'])) {
     $userRole = 'Supplier';
     $userName = $_SESSION['vendor_auth']['company_name'] ?? 'Vendor Entity';
 } else if (isset($_SESSION['staff_auth'])) {
+    // Normalizes your database roles: 'Procurement Officer', 'Finance Officer', 'Administrator'/'Manager'
     $userRole = trim($_SESSION['staff_auth']['role']); 
     $userName = $_SESSION['staff_auth']['name'] ?? 'KTMB Staff';
 }
-
-// Inline formatting checks mirroring the Group5 reference helper methods
-function isSupplier($role) { return $role === 'Supplier'; }
-function isProcurementOfficer($role) { return $role === 'Procurement Officer' || $role === 'Staff'; }
-function isFinanceOfficer($role) { return strpos(strtolower($role), 'Finance') !== false; }
-function isAdministrator($role) { return $role === 'Administrator' || $role === 'Administrator'; }
 ?>
 <style>
     :root {
@@ -40,7 +35,7 @@ function isAdministrator($role) { return $role === 'Administrator' || $role === 
         flex-direction: column;
         justify-content: space-between;
         padding: 24px 16px;
-        height: 100%;
+        height: 100%; /* Stay within layout frame constraints */
         box-sizing: border-box;
         transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         overflow-x: hidden;
@@ -101,11 +96,12 @@ function isAdministrator($role) { return $role === 'Administrator' || $role === 
         display: flex;
         flex-direction: column;
         flex-grow: 1;
-        overflow-y: auto;
+        overflow-y: auto; /* Allows long list of links to scroll independently */
         overflow-x: hidden;
         padding-right: 4px;
     }
 
+    /* Custom Scrollbar for navigation container */
     .nav-container::-webkit-scrollbar {
         width: 4px;
     }
@@ -157,7 +153,7 @@ function isAdministrator($role) { return $role === 'Administrator' || $role === 
     }
 
     .nav-item.active {
-        background-color: #002D62;
+        background-color: #002D62; /* KTMB Navy Corporate Accent Color */
         color: #ffffff;
         font-weight: 600;
     }
@@ -185,6 +181,16 @@ function isAdministrator($role) { return $role === 'Administrator' || $role === 
     }
     .sidebar.collapsed .nav-icon {
         margin-right: 0;
+    }
+
+    .nav-item.disabled {
+        color: #cbd5e1;
+        cursor: not-allowed;
+        font-style: italic;
+    }
+    .nav-item.disabled:hover {
+        background-color: transparent;
+        color: #cbd5e1;
     }
 
     .user-badge {
@@ -252,7 +258,7 @@ function isAdministrator($role) { return $role === 'Administrator' || $role === 
         
         <ul class="nav-list">
             
-            <?php if (isSupplier($userRole)): ?>
+            <?php if ($userRole === 'Supplier'): ?>
                 <div class="nav-section-title">Vendor Workspace</div>
                 <li>
                     <a href="/KTMEDOIS/dashboard.php" class="nav-item <?php echo ($current_page == 'dashboard.php') ? 'active' : ''; ?>">
@@ -260,7 +266,6 @@ function isAdministrator($role) { return $role === 'Administrator' || $role === 
                        <span class="nav-text">General Dashboard</span>
                     </a>
                 </li>
-                
                 <div class="nav-section-title">Delivery Orders (M02)</div>
                 <li>
                     <a href="/KTMEDOIS/m2/create_do.php" class="nav-item <?php echo ($current_page == 'create_do.php' || $current_page == 'do_confirmation.php') ? 'active' : ''; ?>">
@@ -274,7 +279,6 @@ function isAdministrator($role) { return $role === 'Administrator' || $role === 
                        <span class="nav-text">DO Tracking Matrix</span>
                     </a>
                 </li>
-                
                 <div class="nav-section-title">Invoices & Claims (M03)</div>
                 <li>
                     <a href="/KTMEDOIS/m3/create_inv.php" class="nav-item <?php echo ($current_page == 'create_inv.php') ? 'active' : ''; ?>">
@@ -289,7 +293,7 @@ function isAdministrator($role) { return $role === 'Administrator' || $role === 
                     </a>
                 </li>
 
-            <?php elseif (isProcurementOfficer($userRole)): ?>
+            <?php elseif ($userRole === 'Procurement Officer' || $userRole === 'Staff'): ?>
                 <div class="nav-section-title">Procurement Desk</div>
                 <li>
                     <a href="/KTMEDOIS/m1/admin_vendor_list.php" class="nav-item <?php echo ($current_page == 'admin_vendor_list.php') ? 'active' : ''; ?>">
@@ -297,7 +301,6 @@ function isAdministrator($role) { return $role === 'Administrator' || $role === 
                        <span class="nav-text">Supplier Directory Master</span>
                     </a>
                 </li>
-                
                 <div class="nav-section-title">DO Verification (M02)</div>
                 <li>
                     <a href="/KTMEDOIS/m4/do_list.php" class="nav-item <?php echo in_array($current_page, ['do_list.php', 'do_details.php']) ? 'active' : ''; ?>">
@@ -312,8 +315,7 @@ function isAdministrator($role) { return $role === 'Administrator' || $role === 
                     </a>
                 </li>
 
-<<<<<<< Updated upstream
-            <?php elseif (isFinanceOfficer($userRole)): ?>
+            <?php elseif (strpos(strtolower($userRole), 'finance') !== false): ?>
                 <div class="nav-section-title">Finance Core Division</div>
                 <li>
                     <a href="/KTMEDOIS/m4/review_dashboard.php" class="nav-item <?php echo ($current_page == 'review_dashboard.php') ? 'active' : ''; ?>">
@@ -321,7 +323,6 @@ function isAdministrator($role) { return $role === 'Administrator' || $role === 
                        <span class="nav-text">Finance Dashboard</span>
                     </a>
                 </li>
-                
                 <div class="nav-section-title">Claims Management (M04)</div>
                 <li>
                     <a href="/KTMEDOIS/m4/review_workspace.php" class="nav-item <?php echo ($current_page == 'review_workspace.php') ? 'active' : ''; ?>">
@@ -335,29 +336,8 @@ function isAdministrator($role) { return $role === 'Administrator' || $role === 
                        <span class="nav-text">Disbursement Records</span>
                     </a>
                 </li>
-=======
-            <div class="nav-section-title">Delivery Orders</div>
-            <li>
-                <a href="/KTMEDOIS/m2/create_do.php" class="nav-item <?php echo ($current_page == 'create_do.php' || $current_page == 'do_confirmation.php') ? 'active' : ''; ?>">
-                   <span class="nav-icon"></span>
-                   <span class="nav-text">Submit Delivery Order</span>
-                </a>
-            </li>
-            <li>
-                <a href="/KTMEDOIS/m2/do_dashboard.php"" class="nav-item <?php echo ($current_page == 'do_dashboard.php' || $current_page == 'do_rejected.php') ? 'active' : ''; ?>">
-                   <span class="nav-icon"></span>
-                   <span class="nav-text">DO Dashboard / Status</span>
-                </a>
-            </li>
-            <li>
-       m         <a href="/KTMEDOIS/m2/do_report.php" class="nav-item <?php echo ($current_page == 'do_report.php') ? 'active' : ''; ?>">
-                   <span class="nav-icon"></span>
-                   <span class="nav-text">Generate DO Summary</span>
-                </a>
-            </li>
->>>>>>> Stashed changes
 
-            <?php elseif (isAdministrator($userRole)): ?>
+            <?php elseif ($userRole === 'Administrator' || $userRole === 'Manager'): ?>
                 <div class="nav-section-title">System Controller</div>
                 <li>
                     <a href="/KTMEDOIS/m4/review_dashboard.php" class="nav-item <?php echo ($current_page == 'review_dashboard.php') ? 'active' : ''; ?>">
@@ -365,7 +345,6 @@ function isAdministrator($role) { return $role === 'Administrator' || $role === 
                        <span class="nav-text">Operations Center Overview</span>
                     </a>
                 </li>
-                
                 <div class="nav-section-title">Audits & Insights</div>
                 <li>
                     <a href="/KTMEDOIS/m4/audit_log.php" class="nav-item <?php echo ($current_page == 'audit_log.php') ? 'active' : ''; ?>">
