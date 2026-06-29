@@ -1,0 +1,22 @@
+ADD THESE 3 nav items inside sidebar.php, under the "Verification Logs (M04)" section:
+
+After the existing <li> for "Management Report", ADD:
+
+            <li>
+                <a href="/KTMEDOIS/m4/assign_reviewer.php" class="nav-item <?php echo ($current_page == 'assign_reviewer.php') ? 'active' : ''; ?>">
+                   <span class="nav-icon"></span>
+                   <span class="nav-text">Assign Reviewer</span>
+                </a>
+            </li>
+            <li>
+                <a href="/KTMEDOIS/m4/notifications.php" class="nav-item <?php echo ($current_page == 'notifications.php') ? 'active' : ''; ?>">
+                   <span class="nav-icon"></span>
+                   <span class="nav-text">Notifications</span>
+                </a>
+            </li>
+            <li>
+                <a href="/KTMEDOIS/m4/review_history.php" class="nav-item <?php echo ($current_page == 'review_history.php') ? 'active' : ''; ?>">
+                   <span class="nav-icon"></span>
+                   <span class="nav-text">Review History</span>
+                </a>
+            </li>
