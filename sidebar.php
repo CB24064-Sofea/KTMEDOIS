@@ -277,33 +277,51 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
             <div class="nav-section-title">Verification Logs (M04)</div>
             <li>
-                <a href="review_dashboard.php" class="nav-item <?php echo ($current_page == 'review_dashboard.php') ? 'active' : ''; ?>">
+                <a href="/KTMEDOIS/m4/review_dashboard.php" class="nav-item <?php echo ($current_page == 'review_dashboard.php') ? 'active' : ''; ?>">
                    <span class="nav-icon"></span>
                    <span class="nav-text">Review Dashboard</span>
                 </a>
             </li>
             <li>
-                <a href="do_list.php" class="nav-item <?php echo in_array($current_page, ['do_list.php', 'do_details.php']) ? 'active' : ''; ?>">
+                <a href="/KTMEDOIS/m4/do_list.php" class="nav-item <?php echo in_array($current_page, ['do_list.php', 'do_details.php']) ? 'active' : ''; ?>">
                    <span class="nav-icon"></span>
                    <span class="nav-text">DO Evaluation</span>
                 </a>
             </li>
             <li>
-                <a href="review_workspace.php" class="nav-item <?php echo ($current_page == 'review_workspace.php') ? 'active' : ''; ?>">
+                <a href="/KTMEDOIS/m4/review_workspace.php" class="nav-item <?php echo ($current_page == 'review_workspace.php') ? 'active' : ''; ?>">
                    <span class="nav-icon"></span>
                    <span class="nav-text">Invoice Clearance</span>
                 </a>
             </li>
             <li>
-                <a href="audit_log.php" class="nav-item <?php echo ($current_page == 'audit_log.php') ? 'active' : ''; ?>">
+                <a href="/KTMEDOIS/m4/audit_log.php" class="nav-item <?php echo ($current_page == 'audit_log.php') ? 'active' : ''; ?>">
                    <span class="nav-icon"></span>
                    <span class="nav-text">System Audit Log</span>
                 </a>
             </li>
             <li>
-                <a href="generate_report.php" class="nav-item <?php echo ($current_page == 'generate_report.php') ? 'active' : ''; ?>">
+                <a href="/KTMEDOIS/m4/generate_report.php" class="nav-item <?php echo ($current_page == 'generate_report.php') ? 'active' : ''; ?>">
                    <span class="nav-icon"></span>
                    <span class="nav-text">Management Report</span>
+                </a>
+            </li>
+            <li>
+                <a href="/KTMEDOIS/m4/assign_reviewer.php" class="nav-item <?php echo ($current_page == 'assign_reviewer.php') ? 'active' : ''; ?>">
+                   <span class="nav-icon"></span>
+                   <span class="nav-text">Assign Reviewer</span>
+                </a>
+            </li>
+            <li>
+                <a href="/KTMEDOIS/m4/notifications.php" class="nav-item <?php echo ($current_page == 'notifications.php') ? 'active' : ''; ?>">
+                   <span class="nav-icon"></span>
+                   <span class="nav-text">Notifications</span>
+                </a>
+            </li>
+            <li>
+                <a href="/KTMEDOIS/m4/review_history.php" class="nav-item <?php echo ($current_page == 'review_history.php') ? 'active' : ''; ?>">
+                   <span class="nav-icon"></span>
+                   <span class="nav-text">Review History</span>
                 </a>
             </li>
         </ul>
