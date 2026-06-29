@@ -312,6 +312,7 @@ function isAdministrator($role) { return $role === 'Administrator' || $role === 
                     </a>
                 </li>
 
+<<<<<<< Updated upstream
             <?php elseif (isFinanceOfficer($userRole)): ?>
                 <div class="nav-section-title">Finance Core Division</div>
                 <li>
@@ -334,6 +335,27 @@ function isAdministrator($role) { return $role === 'Administrator' || $role === 
                        <span class="nav-text">Disbursement Records</span>
                     </a>
                 </li>
+=======
+            <div class="nav-section-title">Delivery Orders</div>
+            <li>
+                <a href="/KTMEDOIS/m2/create_do.php" class="nav-item <?php echo ($current_page == 'create_do.php' || $current_page == 'do_confirmation.php') ? 'active' : ''; ?>">
+                   <span class="nav-icon"></span>
+                   <span class="nav-text">Submit Delivery Order</span>
+                </a>
+            </li>
+            <li>
+                <a href="/KTMEDOIS/m2/do_dashboard.php"" class="nav-item <?php echo ($current_page == 'do_dashboard.php' || $current_page == 'do_rejected.php') ? 'active' : ''; ?>">
+                   <span class="nav-icon"></span>
+                   <span class="nav-text">DO Dashboard / Status</span>
+                </a>
+            </li>
+            <li>
+       m         <a href="/KTMEDOIS/m2/do_report.php" class="nav-item <?php echo ($current_page == 'do_report.php') ? 'active' : ''; ?>">
+                   <span class="nav-icon"></span>
+                   <span class="nav-text">Generate DO Summary</span>
+                </a>
+            </li>
+>>>>>>> Stashed changes
 
             <?php elseif (isAdministrator($userRole)): ?>
                 <div class="nav-section-title">System Controller</div>
