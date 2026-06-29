@@ -29,51 +29,59 @@ $error = '';
 // ==========================================
 // [POST LOGIN VALIDATION FLOW]
 // ==========================================
+// ==========================================
+// [POST LOGIN VALIDATION FLOW - UNIFIED]
+// ==========================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
-    $password = trim($_POST['password'] ?? ''); // Keep parameters prepared for eventual password hashing checks
+    $password = trim($_POST['password'] ?? '');
 
-    if (empty($email)) {
-        $error = "Vendor Email is required.";
+    if (empty($email) || empty($password)) {
+        $error = "Email and Password are required.";
     } else {
-        // ✅ FIXED: Updated table columns to match your ktm_edois.sql schema definitions perfectly
-        $sql = "SELECT supplier_ID, company_name, email, status 
-                FROM supplier 
-                WHERE UPPER(TRIM(email)) = UPPER(?) 
-                LIMIT 1";
+        // 1. First, check the STAFF table
+        $stmt = $conn->prepare("SELECT staff_ID, staff_name, email, password, role FROM ktmb_staff WHERE email = ? LIMIT 1");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
+        $isStaff = true;
 
-        if ($stmt = $conn->prepare($sql)) {
+        // 2. If not staff, check the SUPPLIER table
+        if (!$user) {
+            $stmt = $conn->prepare("SELECT supplier_ID, company_name, email, password, status FROM supplier WHERE email = ? LIMIT 1");
             $stmt->bind_param("s", $email);
             $stmt->execute();
-            $result = $stmt->get_result();
-            $supplier = $result->fetch_assoc();
+            $user = $stmt->get_result()->fetch_assoc();
+            $isStaff = false;
+        }
 
-            if ($supplier) {
-                // ✅ FIXED: Comparing against the 'status' column from your schema
-                if (strtoupper(trim($supplier['status'])) === 'ACTIVE') {
-                    
-                    // Populate corporate authorization sessions cleanly
-                    $_SESSION['vendor_auth'] = [
-                        "supplier_id"   => $supplier['supplier_ID'],
-                        "company_name"  => $supplier['company_name'],
-                        "email"         => $supplier['email'],
-                        "role"          => "Vendor"
-                    ];
-                    
-                    $_SESSION['current_module'] = 'vendor';
-
-                    $stmt->close();
-                    header("Location: vendor_dashboard.php");
-                    exit();
-                } else {
-                    $error = "Access Denied: Your account status is currently set to '" . htmlspecialchars($supplier['status']) . "'.";
-                }
+        if ($user && password_verify($password, $user['password'])) {
+            if ($isStaff) {
+                // STAFF SESSION
+                $_SESSION['user_auth'] = [
+                    "id"    => $user['staff_ID'],
+                    "name"  => $user['staff_name'],
+                    "role"  => $user['role'],
+                    "type"  => "staff"
+                ];
+                header("Location: staff_dashboard.php");
             } else {
-                $error = "Login Failed: Provided email address is not registered in our system repository.";
+                // VENDOR SESSION
+                if (strtoupper($user['status']) === 'ACTIVE') {
+                    $_SESSION['user_auth'] = [
+                        "id"    => $user['supplier_ID'],
+                        "name"  => $user['company_name'],
+                        "role"  => "vendor",
+                        "type"  => "vendor"
+                    ];
+                    header("Location: vendor_dashboard.php");
+                } else {
+                    $error = "Account inactive. Please contact administration.";
+                }
             }
-            $stmt->close();
+            exit();
         } else {
-            $error = "System Error: Failed to compile analytical statement bindings.";
+            $error = "Invalid email or password.";
         }
     }
 }
@@ -93,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background-position: left center; 
             background-repeat: no-repeat;
             background-attachment: fixed;
-            min-height: 100vh;
+            min-height: 60px;
             margin: 0;
         }
 

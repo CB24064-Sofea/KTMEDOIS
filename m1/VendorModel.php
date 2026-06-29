@@ -30,6 +30,29 @@ class VendorModel {
         return $summary;
     }
 
+/**
+     * Checks if the email already exists in the supplier table
+     */
+    public function isEmailRegistered($email) {
+        $stmt = $this->db->prepare("SELECT supplier_ID FROM supplier WHERE email = ? LIMIT 1");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->num_rows > 0;
+    }
+
+    /**
+     * Inserts a new vendor into the supplier table
+     */
+    public function registerVendor($supplierId, $name, $company, $phone, $email, $password) {
+        $sql = "INSERT INTO supplier (supplier_ID, supplier_name, company_name, phone, email, password, status) 
+                VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE')";
+        $stmt = $this->db->prepare($sql);
+        // Assuming your table also has a 'status' column; added 'ACTIVE' by default
+        $stmt->bind_param("ssssss", $supplierId, $name, $company, $phone, $email, $password);
+        return $stmt->execute();
+    }
+
     // Dynamic search filtering list for admin registry dashboards
     public function filterSuppliers($searchKeyword) {
         $query = "SELECT * FROM supplier WHERE 1=1";

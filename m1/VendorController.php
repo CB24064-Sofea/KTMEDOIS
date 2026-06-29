@@ -1,10 +1,6 @@
 <?php
 require_once __DIR__ . '/VendorModel.php';
 
-/**
- * Class VendorController
- * Controls behavioral flows, security routing, and data presentation for Module 1
- */
 class VendorController {
     private $model;
 
@@ -13,20 +9,23 @@ class VendorController {
     }
 
     /**
-     * Ensure logged-in vendors are protected, active, and not restricted/inactive
+     * Ensures only active, logged-in vendors can access the dashboard.
      */
     public function enforceActiveSessionGuard($sessionData) {
+        // Check if session ID exists
         if (!isset($sessionData['supplier_id'])) {
             header("Location: login.php");
             exit();
         }
 
+        // Fetch user profile from database
         $currentRecord = $this->model->getVendorProfile($sessionData['supplier_id']);
         
+        // Validate if record exists and is active
         if (!$currentRecord || strtoupper($currentRecord['status']) !== 'ACTIVE') {
-            unset($_SESSION['vendor_auth']);
+            session_unset();
             session_destroy();
-            header("Location: login.php?error=" . urlencode("Session revoked: Your company profile status is no longer active."));
+            header("Location: login.php?error=" . urlencode("Access Denied: Account inactive or session expired."));
             exit();
         }
 
@@ -34,38 +33,36 @@ class VendorController {
     }
 
     /**
-     * ✅ FIXED: Added the missing registration handler method
-     * Processes form inputs and manages vendor account creation workflow
+     * Handles new vendor registration including password hashing.
      */
     public function handleRegistration($postData) {
         $supplierName = trim($postData['supplier_name'] ?? '');
         $companyName  = trim($postData['company_name'] ?? '');
         $phone        = trim($postData['phone'] ?? '');
         $email        = trim($postData['email'] ?? '');
+        $password     = $postData['password'] ?? '';
 
-        // 1. Inputs validation
-        if (empty($supplierName) || empty($companyName) || empty($email)) {
+        if (empty($supplierName) || empty($companyName) || empty($email) || empty($password)) {
             return ['status' => 'error', 'message' => 'Please fill in all required corporate fields.'];
         }
 
-        // 2. Duplicate Check
         if ($this->model->isEmailRegistered($email)) {
-            return ['status' => 'error', 'message' => 'This email address is already registered in our directory.'];
+            return ['status' => 'error', 'message' => 'This email is already registered.'];
         }
 
-        // 3. Automated unique ID Generator (e.g., SUP12345)
+        // Security: Secure password hashing
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $supplierId = 'SUP' . rand(10000, 99999);
 
-        // 4. Save to Database via the Model
-        $success = $this->model->registerVendor($supplierId, $supplierName, $companyName, $phone, $email);
+        $success = $this->model->registerVendor($supplierId, $supplierName, $companyName, $phone, $email, $hashedPassword);
 
         if ($success) {
             return [
                 'status' => 'success', 
-                'message' => "Registration successful! Your generated Supplier ID is: <strong>{$supplierId}</strong>."
+                'message' => "Registration successful! Your Supplier ID: <strong>{$supplierId}</strong>."
             ];
         } else {
-            return ['status' => 'error', 'message' => 'Database constraint error or system failure occurred.'];
+            return ['status' => 'error', 'message' => 'System failure: Could not save to database.'];
         }
     }
 }
