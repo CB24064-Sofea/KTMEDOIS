@@ -24,8 +24,9 @@ class DeliveryOrderRepository {
         $params = [];
         $types = "";
 
+        // SWITCHED: Now filtering by delivery_status verification state instead of PO baseline
         if ($status !== 'All') {
-            $query .= " AND PO_status = ?";
+            $query .= " AND delivery_status = ?";
             $params[] = $status;
             $types .= "s";
         }
@@ -90,7 +91,7 @@ $count_rows = $report_result ? $report_result->num_rows : 0;
         th { background-color: #f8fafc; padding: 14px 24px; font-size: 12px; font-weight: 700; color: #718096; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
         td { padding: 16px 24px; font-size: 14px; color: #2d3748; border-bottom: 1px solid #edf2f7; }
         .status-pill { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-        .status-pending { background-color: #ebf8ff; color: #2b6cb0; }
+        .status-pending { background-color: #fef3c7; color: #d97706; } /* Adjusted to Warm Amber for waiting state */
         .status-approved { background-color: #c6f6d5; color: #22543d; }
         .status-rejected { background-color: #fed7d7; color: #742a2a; }
         @media print {
@@ -110,8 +111,8 @@ $count_rows = $report_result ? $report_result->num_rows : 0;
         <div class="content-body">
             <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <h2 style="color: #002D62; font-size: 22px; font-weight: 700;">Delivery Order Summary Reports (OOP Mode)</h2>
-                    <p style="color: #718096; font-size: 14px; margin-top: 2px;">Filter and audit historical material arrival summaries using classes.</p>
+                    <h2 style="color: #002D62; font-size: 22px; font-weight: 700;">Delivery Order Summary Reports</h2>
+                    <p style="color: #718096; font-size: 14px; margin-top: 2px;">Filter and audit historical material arrival verification metrics.</p>
                 </div>
                 <button class="btn-print" onclick="window.print();">🖨️ Print/Save PDF</button>
             </div>
@@ -130,12 +131,12 @@ $count_rows = $report_result ? $report_result->num_rows : 0;
                         </div>
 
                         <div class="filter-group">
-                            <label for="start_date">From (Delivery Date)</label>
+                            <label for="start_date">From (Submission Date)</label>
                             <input type="date" id="start_date" name="start_date" value="<?php echo htmlspecialchars($start_date); ?>">
                         </div>
 
                         <div class="filter-group">
-                            <label for="end_date">To (Delivery Date)</label>
+                            <label for="end_date">To (Submission Date)</label>
                             <input type="date" id="end_date" name="end_date" value="<?php echo htmlspecialchars($end_date); ?>">
                         </div>
 
@@ -158,14 +159,15 @@ $count_rows = $report_result ? $report_result->num_rows : 0;
                             <th>Purchase Order</th>
                             <th>Supplier ID</th>
                             <th>Target Unit</th>
-                            <th>Delivery Date</th>
+                            <th>Submission Date</th>
                             <th>Current State</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if ($report_result && $report_result->num_rows > 0): ?>
                             <?php while($row = $report_result->fetch_assoc()): 
-                                $status_val = !empty($row['PO_status']) ? $row['PO_status'] : 'Pending';
+                                // READ FROM SPECIFIC VERIFICATION STATUS
+                                $status_val = !empty($row['delivery_status']) ? $row['delivery_status'] : 'Pending';
                             ?>
                                 <tr>
                                     <td style="font-weight: 600; color: #002D62;"><?php echo htmlspecialchars($row['DO_ID']); ?></td>

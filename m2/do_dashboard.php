@@ -35,7 +35,7 @@ $table_result = $model->getAllDeliveryOrders();
     <div class="lower-split-container">
         <?php include('../sidebar.php'); ?>
         <div class="content-body">
-            <h2 style="color: #002D62; margin-bottom: 20px;">Module 2 Delivery Order Workspace</h2>
+            <h2 style="color: #002D62; margin-bottom: 20px;">Delivery Tracking Status</h2>
             
             <div class="metrics-grid">
                 <div class="metric-card">
