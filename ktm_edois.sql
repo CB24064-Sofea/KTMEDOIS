@@ -2,8 +2,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost:3307
--- Generation Time: Jun 30, 2026 at 03:50 AM
+-- Host: 127.0.0.1:3307
+-- Generation Time: Jun 30, 2026 at 04:28 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -41,7 +41,7 @@ CREATE TABLE `audit_log` (
 --
 
 INSERT INTO `audit_log` (`log_ID`, `staff_ID`, `invoice_ID`, `action`, `record_ID`, `timestamp`) VALUES
-(1, 'STF001', 1, 'Verified', 'INV2026001', '2026-06-30 08:20:47');
+(1, 'STF001', 1, 'Verified', 'INV2026001', '2026-06-19 23:32:08');
 
 -- --------------------------------------------------------
 
@@ -63,7 +63,7 @@ CREATE TABLE `customer` (
 --
 
 INSERT INTO `customer` (`customer_ID`, `customer_name`, `company_name`, `billing_address`, `status`, `last_login`) VALUES
-('CUS001', 'KTMB Procurement Unit', 'KTMB', 'Jalan Sultan Hishamuddin, Kuala Lumpur', 'Active', '2026-06-30 08:20:47');
+('CUS001', 'KTMB Procurement Unit', 'KTMB', 'Jalan Sultan Hishamuddin, Kuala Lumpur', 'Active', '2026-06-19 23:32:08');
 
 -- --------------------------------------------------------
 
@@ -80,18 +80,15 @@ CREATE TABLE `delivery_order` (
   `PO_status` varchar(20) NOT NULL,
   `created_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `project_reference` varchar(50) DEFAULT NULL,
-  `proof_of_delivery` varchar(255) NOT NULL,
-  `delivery_status` varchar(20) NOT NULL DEFAULT 'Pending'
+  `proof_of_delivery` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `delivery_order`
 --
 
-INSERT INTO `delivery_order` (`DO_ID`, `supplier_ID`, `PO_ID`, `customer_ID`, `PO_number`, `PO_status`, `created_date`, `project_reference`, `proof_of_delivery`, `delivery_status`) VALUES
-('DO001', 'SUP001', 'PO001', 'CUS001', 'PO2026001', 'Rejected', '2026-06-30 00:20:47', 'PRJ-KTM-001', 'uploads/do001.pdf', 'Pending'),
-('DO002', 'SUP001', 'PO001', 'CUS001', 'NUM-PO001', 'Approved', '2026-06-30 01:24:43', 'PRJ2002', 'uploads/do_do002.jpeg', 'Pending'),
-('DO003', 'SUP001', 'PO001', 'CUS001', 'NUM-PO001', 'Approved', '2026-06-30 01:29:39', 'PRJ2002', 'uploads/do_do003.jpeg', 'Pending');
+INSERT INTO `delivery_order` (`DO_ID`, `supplier_ID`, `PO_ID`, `customer_ID`, `PO_number`, `PO_status`, `created_date`, `project_reference`, `proof_of_delivery`) VALUES
+('DO001', 'SUP001', 'PO001', 'CUS001', 'PO2026001', 'Approved', '2026-06-19 15:32:08', 'PRJ-KTM-001', 'uploads/do001.pdf');
 
 -- --------------------------------------------------------
 
@@ -120,7 +117,7 @@ CREATE TABLE `invoice` (
 --
 
 INSERT INTO `invoice` (`invoice_ID`, `DO_ID`, `billing_address`, `invoice_num`, `description`, `invoice_date`, `subtotal`, `tax`, `credit_note`, `total`, `invoice_status`, `payment_status`, `reason`) VALUES
-(1, 'DO001', 'Jalan Sultan Hishamuddin, Kuala Lumpur', 'INV2026001', 'Supply of railway maintenance equipment', '2026-06-30 08:20:47', 15000.00, 900.00, 0.00, 15900.00, 'Submitted', 'Pending', NULL);
+(1, 'DO001', 'Jalan Sultan Hishamuddin, Kuala Lumpur', 'INV2026001', 'Supply of railway maintenance equipment', '2026-06-19 23:32:08', 15000.00, 900.00, 0.00, 15900.00, 'Submitted', 'Pending', NULL);
 
 -- --------------------------------------------------------
 
@@ -131,6 +128,8 @@ INSERT INTO `invoice` (`invoice_ID`, `DO_ID`, `billing_address`, `invoice_num`, 
 CREATE TABLE `ktmb_staff` (
   `staff_ID` varchar(10) NOT NULL,
   `staff_name` varchar(100) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `password` varchar(255) NOT NULL,
   `role` enum('Procurement Officer','Finance Officer','Administrator','Manager') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -138,8 +137,9 @@ CREATE TABLE `ktmb_staff` (
 -- Dumping data for table `ktmb_staff`
 --
 
-INSERT INTO `ktmb_staff` (`staff_ID`, `staff_name`, `role`) VALUES
-('STF001', 'Ahmad Faiz', 'Procurement Officer');
+INSERT INTO `ktmb_staff` (`staff_ID`, `staff_name`, `email`, `password`, `role`) VALUES
+('STF001', 'Ahmad Faiz', 'AhmadFaiz@gmail.com', '$2y$10$XNeCFHQAa1CEQAKSBGmYheq8j93vCE9EkfPlb5uitwZw0BNgXTpGy', 'Procurement Officer'),
+('STF301', 'ALI BIN ABU', 'ALIKTM@gmail.com', '$2y$10$gRBPG8XZkjM9KQc0lluLQe67fIZA9B1PgpC/vqtusu7xhuGLQy0t2', 'Finance Officer');
 
 -- --------------------------------------------------------
 
@@ -161,7 +161,7 @@ CREATE TABLE `notification` (
 --
 
 INSERT INTO `notification` (`noti_ID`, `customer_ID`, `type`, `content`, `status`, `created_at`) VALUES
-(1, 'CUS001', 'Invoice', 'Invoice INV2026001 has been submitted.', 'Unread', '2026-06-30 08:20:47');
+(1, 'CUS001', 'Invoice', 'Invoice INV2026001 has been submitted.', 'Unread', '2026-06-19 23:32:08');
 
 -- --------------------------------------------------------
 
@@ -195,6 +195,7 @@ CREATE TABLE `supplier` (
   `company_name` varchar(100) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
+  `password` varchar(255) NOT NULL,
   `status` enum('Active','Restricted','Inactive') DEFAULT 'Active',
   `inactive_date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -203,8 +204,10 @@ CREATE TABLE `supplier` (
 -- Dumping data for table `supplier`
 --
 
-INSERT INTO `supplier` (`supplier_ID`, `supplier_name`, `company_name`, `phone`, `email`, `status`, `inactive_date`) VALUES
-('SUP001', 'ABC Supplier Sdn Bhd', 'ABC Supplier Sdn Bhd', '0123456789', 'abc@gmail.com', 'Active', NULL);
+INSERT INTO `supplier` (`supplier_ID`, `supplier_name`, `company_name`, `phone`, `email`, `password`, `status`, `inactive_date`) VALUES
+('SUP001', 'ABC Supplier Sdn Bhd', 'ABC Supplier Sdn Bhd', '0123456789', 'abc@gmail.com', 'ABC123', 'Active', '2025-06-03'),
+('SUP67554', 'layla', 'LNSTech', '0104598848', 'layla@gmail.com', '$2y$10$xFkpznzeVgs1eVbqkv6zR.u3Synk2O6h62CNQOkk7oVOB2xGgkLS.', 'Active', NULL),
+('SUP73947', 'NOR SOFEA BINTI ZAMRI', 'LNS TECH SDN BHD', '+60146054016', 'norsofeazamri@gmail.com', '$2y$10$k5dMHZD52ozwmKXeaI8qAebVzg4KOuXwsChXB1OEIX00TLqbOtXJW', 'Active', NULL);
 
 -- --------------------------------------------------------
 
@@ -213,24 +216,28 @@ INSERT INTO `supplier` (`supplier_ID`, `supplier_name`, `company_name`, `phone`,
 --
 
 CREATE TABLE `user` (
-  `UserID` int(11) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `username` varchar(50) DEFAULT NULL,
-  `password` varchar(255) NOT NULL,
+  `UserID` int(8) NOT NULL,
+  `UserName` varchar(100) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `password` varchar(100) NOT NULL,
   `company_name` varchar(100) DEFAULT NULL,
-  `phone` varchar(20) DEFAULT NULL,
-  `status` enum('Active','Inactive') DEFAULT 'Active',
+  `phone` int(20) DEFAULT NULL,
+  `status` enum('active','inactive','','') DEFAULT NULL,
   `inactive_date` date DEFAULT NULL,
-  `role` varchar(50) DEFAULT 'Staff'
+  `role` enum('Administrator','Finance Officer','Procurement Officer','Supplier') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user`
 --
 
-INSERT INTO `user` (`UserID`, `email`, `username`, `password`, `company_name`, `phone`, `status`, `inactive_date`, `role`) VALUES
-(1, 'abc@gmail.com', 'SUP001', 'password123', 'ABC Supplier Sdn Bhd', '0123456789', 'Active', NULL, 'Supplier'),
-(2, 'staff@ktmb.com.my', 'STF001', 'password123', 'KTMB', NULL, 'Active', NULL, 'Procurement Officer');
+INSERT INTO `user` (`UserID`, `UserName`, `email`, `password`, `company_name`, `phone`, `status`, `inactive_date`, `role`) VALUES
+(0, 'ABC Supplier Sdn Bhd', 'abc@gmail.com', 'pass12345', 'ABC Supplier Sdn Bhd', 123456789, 'active', '2025-06-03', 'Supplier'),
+(1, 'Azli', 'Azli@gmail.com', 'pass12345', NULL, NULL, 'active', NULL, 'Administrator'),
+(102, 'KTMB Administrator', 'admin@ktmb.com', '$2y$10$nN6BBJJcrUjt0CZBrntOgOtaX6dZ9nvynOMPqm9ybtNKC.acweaVW', 'Keretapi Tanah Melayu Berhad', 2147483647, 'active', NULL, 'Administrator'),
+(103, 'Ahmad Faiz', 'finance@ktmb.com', '$2y$10$nN6BBJJcrUjt0CZBrntOgOtaX6dZ9nvynOMPqm9ybtNKC.acweaVW', 'KTMB Finance Unit', 2147483647, 'active', NULL, 'Finance Officer'),
+(104, 'Ali Bin Abu', 'procurement@ktmb.com', '$2y$10$nN6BBJJcrUjt0CZBrntOgOtaX6dZ9nvynOMPqm9ybtNKC.acweaVW', 'KTMB Procurement Unit', 2147483647, 'active', NULL, 'Procurement Officer'),
+(105, 'ABC Supplier Sdn Bhd', 'vendor@abc.com', '$2y$10$jcrLhqugL3CMe/E7Yzpy9eDu9r78dOI1w73Yy3H80ASkcr9f4gkz.', 'ABC Supplier Sdn Bhd', 2147483647, 'active', NULL, '');
 
 --
 -- Indexes for dumped tables
@@ -297,8 +304,7 @@ ALTER TABLE `supplier`
 -- Indexes for table `user`
 --
 ALTER TABLE `user`
-  ADD PRIMARY KEY (`UserID`),
-  ADD UNIQUE KEY `email` (`email`);
+  ADD PRIMARY KEY (`UserID`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -326,7 +332,7 @@ ALTER TABLE `notification`
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
-  MODIFY `UserID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `UserID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=106;
 
 --
 -- Constraints for dumped tables
