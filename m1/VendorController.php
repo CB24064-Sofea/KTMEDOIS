@@ -20,9 +20,12 @@ class VendorController {
 
         // Fetch user profile from database
         $currentRecord = $this->model->getVendorProfile($sessionData['supplier_id']);
-        
+
+        $status = strtoupper(trim((string) ($currentRecord['status'] ?? '')));
+        $isActive = $currentRecord && ($status === '' || $status === 'ACTIVE');
+
         // Validate if record exists and is active
-        if (!$currentRecord || strtoupper($currentRecord['status']) !== 'ACTIVE') {
+        if (!$isActive) {
             session_unset();
             session_destroy();
             header("Location: login.php?error=" . urlencode("Access Denied: Account inactive or session expired."));

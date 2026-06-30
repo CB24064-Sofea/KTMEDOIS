@@ -21,14 +21,20 @@ class InvoiceModel {
         if ($filterStatus !== 'all') {
             $safe = $this->db->real_escape_string($filterStatus);
             $sql = "SELECT i.invoice_ID, i.invoice_num, i.DO_ID, i.total,
-                           i.invoice_status, i.invoice_date
+                           i.invoice_status, i.invoice_date, i.payment_status,
+                           s.supplier_name
                     FROM invoice i
+                    INNER JOIN delivery_order d ON i.DO_ID = d.DO_ID
+                    INNER JOIN supplier s ON d.supplier_ID = s.supplier_ID
                     WHERE i.invoice_status = '$safe'
                     ORDER BY i.invoice_ID DESC";
         } else {
             $sql = "SELECT i.invoice_ID, i.invoice_num, i.DO_ID, i.total,
-                           i.invoice_status, i.invoice_date
+                           i.invoice_status, i.invoice_date, i.payment_status,
+                           s.supplier_name
                     FROM invoice i
+                    INNER JOIN delivery_order d ON i.DO_ID = d.DO_ID
+                    INNER JOIN supplier s ON d.supplier_ID = s.supplier_ID
                     ORDER BY i.invoice_ID DESC";
         }
         return $this->db->query($sql);
@@ -36,22 +42,28 @@ class InvoiceModel {
 
     // ── Dashboard stat counts ─────────────────────────────────────────────────
     public function getDashboardStats() {
+        $q = function($sql) { return $this->db->query($sql)->fetch_assoc()['c']; };
         return [
-            'total'     => $this->db->query("SELECT COUNT(*) as c FROM invoice")->fetch_assoc()['c'],
-            'submitted' => $this->db->query("SELECT COUNT(*) as c FROM invoice WHERE invoice_status='Submitted'")->fetch_assoc()['c'],
-            'reviewing' => $this->db->query("SELECT COUNT(*) as c FROM invoice WHERE invoice_status='Under Review'")->fetch_assoc()['c'],
-            'finance'   => $this->db->query("SELECT COUNT(*) as c FROM invoice WHERE invoice_status='Finance Review'")->fetch_assoc()['c'],
-            'rejected'  => $this->db->query("SELECT COUNT(*) as c FROM invoice WHERE invoice_status='Rejected'")->fetch_assoc()['c'],
+            'total'          => $q("SELECT COUNT(*) as c FROM invoice"),
+            'submitted'      => $q("SELECT COUNT(*) as c FROM invoice WHERE invoice_status='Submitted'"),
+            'reviewing'      => $q("SELECT COUNT(*) as c FROM invoice WHERE invoice_status='Under Review'"),
+            'finance'        => $q("SELECT COUNT(*) as c FROM invoice WHERE invoice_status='Finance Review'"),
+            'approved'       => $q("SELECT COUNT(*) as c FROM invoice WHERE invoice_status='Approved'"),
+            'rejected'       => $q("SELECT COUNT(*) as c FROM invoice WHERE invoice_status='Rejected'"),
+            'pending_pay'    => $q("SELECT COUNT(*) as c FROM invoice WHERE payment_status='Pending' AND invoice_status='Approved'"),
+            'paid'           => $q("SELECT COUNT(*) as c FROM invoice WHERE payment_status='Paid'"),
         ];
     }
 
     // ── getInvoiceById() — SDD_CLS_402 reviewSubmissionUI ────────────────────
-    // Fetches full invoice + linked delivery order data
+    // Fetches full invoice + linked delivery order + supplier data
     public function getInvoiceById($invoiceId) {
         $stmt = $this->db->prepare(
-            "SELECT i.*, d.supplier_ID, d.PO_ID, d.proof_of_delivery
+            "SELECT i.*, d.supplier_ID, d.PO_ID, d.proof_of_delivery, d.PO_number,
+                    s.supplier_name, s.email as supplier_email
              FROM invoice i
              INNER JOIN delivery_order d ON i.DO_ID = d.DO_ID
+             INNER JOIN supplier s ON d.supplier_ID = s.supplier_ID
              WHERE i.invoice_ID = ? LIMIT 1"
         );
         $stmt->bind_param("i", $invoiceId);
@@ -62,11 +74,16 @@ class InvoiceModel {
     }
 
     // ── updateStatus() — SDD_CLS_405 ReviewAndApprovalController ─────────────
-    // Updates invoice_status in the database. Stores reason for Rejected only.
+    // Updates invoice_status in the database.
     public function updateStatus($invoiceId, $actionType, $remarks) {
         if ($actionType === 'Verified') {
             $stmt = $this->db->prepare(
                 "UPDATE invoice SET invoice_status = 'Finance Review' WHERE invoice_ID = ?"
+            );
+            $stmt->bind_param("i", $invoiceId);
+        } elseif ($actionType === 'Approved') {
+            $stmt = $this->db->prepare(
+                "UPDATE invoice SET invoice_status = 'Approved', payment_status = 'Processing' WHERE invoice_ID = ?"
             );
             $stmt->bind_param("i", $invoiceId);
         } elseif ($actionType === 'UnderReview') {
@@ -75,6 +92,7 @@ class InvoiceModel {
             );
             $stmt->bind_param("i", $invoiceId);
         } else {
+            // Rejected
             $stmt = $this->db->prepare(
                 "UPDATE invoice SET invoice_status = 'Rejected', reason = ? WHERE invoice_ID = ?"
             );
@@ -131,8 +149,8 @@ class InvoiceModel {
         if ($status !== 'all') $whereParts[] = "i.invoice_status = '" . $this->db->real_escape_string($status) . "'";
         $where = !empty($whereParts) ? 'WHERE ' . implode(' AND ', $whereParts) : '';
 
-        $sql = "SELECT i.invoice_num, i.DO_ID, i.total, i.invoice_status, i.invoice_date,
-                       s.supplier_name
+        $sql = "SELECT i.invoice_num, i.DO_ID, i.total, i.invoice_status,
+                       i.invoice_date, i.payment_status, s.supplier_name
                 FROM invoice i
                 INNER JOIN delivery_order d ON i.DO_ID = d.DO_ID
                 INNER JOIN supplier s ON d.supplier_ID = s.supplier_ID
@@ -144,5 +162,17 @@ class InvoiceModel {
             while ($row = $result->fetch_assoc()) $data[] = $row;
         }
         return $data;
+    }
+
+    // ── getFinanceSummary() — finance stats for dashboard ────────────────────
+    public function getFinanceSummary() {
+        $total_val  = $this->db->query("SELECT COALESCE(SUM(total),0) as t FROM invoice")->fetch_assoc()['t'];
+        $paid_val   = $this->db->query("SELECT COALESCE(SUM(total),0) as t FROM invoice WHERE payment_status='Paid'")->fetch_assoc()['t'];
+        $pending_val= $this->db->query("SELECT COALESCE(SUM(total),0) as t FROM invoice WHERE invoice_status='Finance Review'")->fetch_assoc()['t'];
+        return [
+            'total_value'   => $total_val,
+            'paid_value'    => $paid_val,
+            'pending_value' => $pending_val,
+        ];
     }
 }

@@ -3,7 +3,14 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 require_once dirname(__DIR__) . "/db.php";
+require_once __DIR__ . "/StaffController.php";
 require_once __DIR__ . "/VendorModel.php";
+
+$staffController = new StaffController($conn);
+$staffController->requireStaffRoles(
+    $_SESSION['staff_auth'] ?? [],
+    ['Administrator', 'Procurement Officer']
+);
 
 $model = new VendorModel($conn);
 $search = isset($_GET['search_keyword']) ? trim($_GET['search_keyword']) : '';

@@ -17,6 +17,22 @@ class StaffModel {
      * @return array|null Returns associative data row array if found, null otherwise
      */
     public function getStaffProfile($staffId) {
+        $sql = "SELECT UserID AS staff_ID, UserName AS staff_name, email, role, password
+                FROM user
+                WHERE CAST(UserID AS CHAR) = TRIM(?)
+                LIMIT 1";
+
+        if ($stmt = $this->db->prepare($sql)) {
+            $stmt->bind_param("s", $staffId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($result && ($row = $result->fetch_assoc())) {
+                $stmt->close();
+                return $row;
+            }
+            $stmt->close();
+        }
+
         $sql = "SELECT staff_ID, staff_name, email, role, password 
                 FROM ktmb_staff 
                 WHERE TRIM(staff_ID) = TRIM(?) 

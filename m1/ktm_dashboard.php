@@ -16,21 +16,23 @@ $staffController = new StaffController($conn);
 // If the session array doesn't exist, the controller handles the redirection automatically.
 $currentStaff = $staffController->enforceActiveSessionGuard($_SESSION['staff_auth'] ?? []);
 
-// ✅ FIX 2: Extract real database values returned directly from the Controller/Model
-$sub_role  = $currentStaff['role']; // 'Administrator', 'Finance Reviewer', or 'KTM Staff'
+$sub_role  = $currentStaff['role'];
 $staffName = $currentStaff['name'];
 
-// ✅ FIX 3: Sync your global session metrics to maintain state across pages cleanly
+$isAdministrator = ($sub_role === 'Administrator');
+$isFinanceStaff  = in_array($sub_role, ['Administrator', 'Finance Officer', 'Finance Reviewer'], true);
+$isProcurementStaff = in_array($sub_role, ['Administrator', 'Procurement Officer', 'KTM Staff'], true);
+
 $_SESSION['staff_auth'] = [
     "staff_id" => $currentStaff['staff_ID'],
     "name"     => $currentStaff['name'],
     "email"    => $currentStaff['email'],
-    "sub_role" => $currentStaff['role'] 
+    "sub_role" => $currentStaff['role'],
+    "role"     => $currentStaff['role']
 ];
+$_SESSION['staff_id'] = $currentStaff['staff_ID'];
+$_SESSION['user_id'] = $currentStaff['staff_ID'];
 $_SESSION['current_module'] = 'staff';
-
-// 💡 REMOVED: The manual redirect checks and mock email lookups (`if empty($sub_role)...`) 
-// have been stripped out because your MVC Controller handles live verification now.
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -92,6 +94,10 @@ $_SESSION['current_module'] = 'staff';
     </nav>
 
     <div class="container my-5">
+
+        <?php if (!empty($_GET['error'])): ?>
+            <div class="alert alert-warning shadow-sm"><?php echo htmlspecialchars($_GET['error']); ?></div>
+        <?php endif; ?>
         
         <div class="row mb-4">
             <div class="col-12">
@@ -101,12 +107,12 @@ $_SESSION['current_module'] = 'staff';
                         <p class="text-muted m-0">Manage delivery orders, validation pipelines, and architectural rules.</p>
                     </div>
                     <div>
-                        <?php if ($sub_role === 'Administrator'): ?>
+                        <?php if ($isAdministrator): ?>
                             <span class="badge bg-admin role-badge fw-bold shadow-sm"><i class="fa-solid fa-user-shield me-1"></i> Mode: Administrator</span>
-                        <?php elseif ($sub_role === 'Finance Reviewer'): ?>
-                            <span class="badge bg-finance role-badge fw-bold shadow-sm"><i class="fa-solid fa-file-invoice-dollar me-1"></i> Mode: Finance Reviewer</span>
+                        <?php elseif ($sub_role === 'Finance Officer' || $sub_role === 'Finance Reviewer'): ?>
+                            <span class="badge bg-finance role-badge fw-bold shadow-sm"><i class="fa-solid fa-file-invoice-dollar me-1"></i> Mode: Finance Officer</span>
                         <?php else: ?>
-                            <span class="badge bg-staff role-badge fw-bold shadow-sm"><i class="fa-solid fa-user-gear me-1"></i> Mode: KTM Staff</span>
+                            <span class="badge bg-staff role-badge fw-bold shadow-sm"><i class="fa-solid fa-user-gear me-1"></i> Mode: Procurement Officer</span>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -122,45 +128,45 @@ $_SESSION['current_module'] = 'staff';
                         <div class="feature-icon text-primary"><i class="fa-solid fa-magnifying-glass-doc"></i></div>
                         <h5 class="fw-bold card-title">Track & Search Orders</h5>
                         <p class="card-text text-muted">Inquire, inspect, and evaluate active incoming supplier delivery tracking metrics.</p>
-                        <a href="track_orders.php" class="btn btn-sm btn-outline-primary fw-semibold mt-2">Launch Engine &rarr;</a>
+                        <a href="../m2/do_dashboard.php" class="btn btn-sm btn-outline-primary fw-semibold mt-2">Launch Engine &rarr;</a>
                     </div>
                 </div>
             </div>
 
-            <?php if ($sub_role === 'Finance Reviewer' || $sub_role === 'Administrator'): ?>
+            <?php if ($isFinanceStaff): ?>
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card card-custom h-100 shadow-sm bg-white" style="border-left: 4px solid #0f764e;">
                         <div class="card-body p-4">
                             <div class="feature-icon text-success"><i class="fa-solid fa-stamp"></i></div>
                             <h5 class="fw-bold card-title">Invoice Validation & Audits</h5>
                             <p class="card-text text-muted">Verify incoming legal accounting documentation clearances against matching warehouse operations parameters.</p>
-                            <a href="finance_review.php" class="btn btn-sm btn-success fw-semibold mt-2">Review Pending Queues</a>
+                            <a href="../m4/review_workspace.php" class="btn btn-sm btn-success fw-semibold mt-2">Review Pending Queues</a>
                         </div>
                     </div>
                 </div>
             <?php endif; ?>
 
-            <?php if ($sub_role === 'KTM Staff' || $sub_role === 'Administrator'): ?>
+            <?php if ($isProcurementStaff): ?>
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card card-custom h-100 shadow-sm bg-white">
                         <div class="card-body p-4">
                             <div class="feature-icon text-info"><i class="fa-solid fa-boxes-stacked"></i></div>
                             <h5 class="fw-bold card-title">Physical Dispatches Verification</h5>
                             <p class="card-text text-muted">Acknowledge item acceptance directly from ground operations yards at cargo waypoints.</p>
-                            <a href="verify_dispatches.php" class="btn btn-sm btn-info text-white fw-semibold mt-2">Open Operations Yard</a>
+                            <a href="../m4/assign_reviewer.php" class="btn btn-sm btn-info text-white fw-semibold mt-2">Open Operations Yard</a>
                         </div>
                     </div>
                 </div>
             <?php endif; ?>
 
-            <?php if ($sub_role === 'Administrator'): ?>
+            <?php if ($isAdministrator): ?>
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card card-custom h-100 shadow-sm text-white" style="background-color: #3b1c8c;">
                         <div class="card-body p-4">
                             <div class="feature-icon text-warning"><i class="fa-solid fa-users-gear"></i></div>
                             <h5 class="fw-bold card-title">Vendor Account Management</h5>
                             <p class="text-white-50">Approve registrations, reset access tokens, modify systemic validation schemas, and assign vendor risk status ratings.</p>
-                            <a href="manage_vendors.php" class="btn btn-sm btn-warning fw-semibold mt-2">Enter Enterprise Dashboard</a>
+                            <a href="admin_vendor_list.php" class="btn btn-sm btn-warning fw-semibold mt-2">Enter Enterprise Dashboard</a>
                         </div>
                     </div>
                 </div>
@@ -171,7 +177,18 @@ $_SESSION['current_module'] = 'staff';
                             <div class="feature-icon text-danger"><i class="fa-solid fa-terminal"></i></div>
                             <h5 class="fw-bold card-title">System Audit Trails & Configuration</h5>
                             <p class="text-muted">Review atomic structural exceptions, inspect security errors, and view absolute action logs.</p>
-                            <a href="system_logs.php" class="btn btn-sm btn-outline-danger fw-semibold mt-2">Examine Logs</a>
+                            <a href="../m4/audit_log.php" class="btn btn-sm btn-outline-danger fw-semibold mt-2">Examine Logs</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card card-custom h-100 shadow-sm bg-white" style="border-left: 4px solid #002B49;">
+                        <div class="card-body p-4">
+                            <div class="feature-icon text-primary"><i class="fa-solid fa-chart-line"></i></div>
+                            <h5 class="fw-bold card-title">Operations Center Overview</h5>
+                            <p class="card-text text-muted">Monitor pending claims, review queues, and overall finance workflow performance.</p>
+                            <a href="../m4/review_dashboard.php" class="btn btn-sm btn-primary fw-semibold mt-2">Open Operations Center</a>
                         </div>
                     </div>
                 </div>

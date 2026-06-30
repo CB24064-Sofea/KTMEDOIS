@@ -2,8 +2,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost:3307
--- Generation Time: Jun 29, 2026 at 02:49 PM
+-- Host: 127.0.0.1:3307
+-- Generation Time: Jun 30, 2026 at 04:28 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -166,8 +166,9 @@ CREATE TABLE `audit_log` (
 -- Dumping data for table `audit_log`
 --
 
-INSERT INTO `audit_log` (`log_ID`, `user_ID`, `invoice_ID`, `action`, `record_ID`, `timestamp`) VALUES
-(1, 'STF001', 1, 'Verified', 'INV2026001', '2026-06-19 23:32:08');
+INSERT INTO `ktmb_staff` (`staff_ID`, `staff_name`, `email`, `password`, `role`) VALUES
+('STF001', 'Ahmad Faiz', 'AhmadFaiz@gmail.com', 'Faiz123', 'Procurement Officer'),
+('STF301', 'ALI BIN ABU', 'ALIKTM@gmail.com', 'Ali123', 'Finance Officer');
 
 -- --------------------------------------------------------
 
@@ -190,6 +191,51 @@ CREATE TABLE `notification` (
 
 INSERT INTO `notification` (`noti_ID`, `customer_ID`, `type`, `content`, `status`, `created_at`) VALUES
 (1, 'CUS001', 'Invoice', 'Invoice INV2026001 has been submitted.', 'Unread', '2026-06-19 23:32:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `purchase_order`
+--
+
+CREATE TABLE `purchase_order` (
+  `PO_ID` varchar(8) NOT NULL,
+  `customer_ID` varchar(20) NOT NULL,
+  `PO_amount` decimal(12,2) NOT NULL,
+  `PO_status` enum('Pending','Approved','Completed','Cancelled') DEFAULT 'Pending'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `purchase_order`
+--
+
+INSERT INTO `purchase_order` (`PO_ID`, `customer_ID`, `PO_amount`, `PO_status`) VALUES
+('PO001', 'CUS001', 15000.00, 'Approved');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `supplier`
+--
+
+CREATE TABLE `supplier` (
+  `supplier_ID` varchar(8) NOT NULL,
+  `supplier_name` varchar(100) NOT NULL,
+  `company_name` varchar(100) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `password` varchar(255) NOT NULL,
+  `status` enum('Active','Restricted','Inactive') DEFAULT 'Active',
+  `inactive_date` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `supplier`
+--
+
+INSERT INTO `supplier` (`supplier_ID`, `supplier_name`, `company_name`, `phone`, `email`, `password`, `status`, `inactive_date`) VALUES
+('SUP001', 'ABC Supplier Sdn Bhd', 'ABC Supplier Sdn Bhd', '0123456789', 'abc@gmail.com', 'ABC123', 'Active', '2025-06-03'),
+('SUP73947', 'NOR SOFEA BINTI ZAMRI', 'LNS TECH SDN BHD', '+60146054016', 'norsofeazamri@gmail.com', '$2y$10$k5dMHZD52ozwmKXeaI8qAebVzg4KOuXwsChXB1OEIX00TLqbOtXJW', 'Active', NULL);
 
 --
 -- Indexes for dumped tables
@@ -247,6 +293,19 @@ ALTER TABLE `notification`
   ADD KEY `fk_notification_customer` (`customer_ID`);
 
 --
+-- Indexes for table `purchase_order`
+--
+ALTER TABLE `purchase_order`
+  ADD PRIMARY KEY (`PO_ID`),
+  ADD KEY `fk_po_customer` (`customer_ID`);
+
+--
+-- Indexes for table `supplier`
+--
+ALTER TABLE `supplier`
+  ADD PRIMARY KEY (`supplier_ID`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -267,6 +326,12 @@ ALTER TABLE `invoice`
 --
 ALTER TABLE `notification`
   MODIFY `noti_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `user`
+--
+ALTER TABLE `user`
+  MODIFY `UserID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=106;
 
 --
 -- Constraints for dumped tables

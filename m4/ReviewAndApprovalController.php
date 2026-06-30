@@ -65,7 +65,7 @@ class ReviewAndApprovalController {
         $this->targetInvoiceID = $invoiceId;
 
         // Step 1: Validate action value
-        if (!in_array($actionType, ['Verified', 'Rejected', 'UnderReview'])) {
+        if (!in_array($actionType, ['Verified', 'Rejected', 'UnderReview', 'Approved'], true)) {
             return ['success' => false, 'message' => 'Invalid action type.'];
         }
 
@@ -74,8 +74,8 @@ class ReviewAndApprovalController {
         if (!$check) {
             return ['success' => false, 'message' => 'Invoice not found.'];
         }
-        if (!in_array($check['invoice_status'], ['Submitted', 'Under Review'])) {
-            return ['success' => false, 'message' => 'Invoice already processed.'];
+        if (!in_array($check['invoice_status'], ['Submitted', 'Under Review', 'Finance Review'])) {
+            return ['success' => false, 'message' => 'Invoice cannot be reviewed at this stage.'];
         }
 
         // Step 3: updateStatus() in DB
@@ -95,8 +95,6 @@ class ReviewAndApprovalController {
 
     // ── routeToFinance() — SDD_CLS_405 ───────────────────────────────────────
     // Called after Verified decision — routes invoice to Finance Review.
-    // In this implementation, updateStatus() already sets 'Finance Review'.
-    // This method is provided explicitly to match the SDD class specification.
     public function routeToFinance($invoiceId) {
         // Already handled in updateStatus() → InvoiceModel::updateStatus('Verified')
         // This explicit method exists to satisfy SDD_CLS_405 interface contract.
@@ -124,6 +122,9 @@ class ReviewAndApprovalController {
         if ($actionType === 'Verified') {
             $type    = 'Invoice Approved';
             $content = "Invoice {$inv['invoice_num']} has been approved and forwarded to Finance Review.";
+        } elseif ($actionType === 'Approved') {
+            $type    = 'Payment Processing';
+            $content = "Invoice {$inv['invoice_num']} has been fully approved by Finance. Payment will be processed shortly.";
         } elseif ($actionType === 'UnderReview') {
             $type    = 'Additional Info Requested';
             $content = "Invoice {$inv['invoice_num']} requires additional information. Remarks: {$remarks}. Please resubmit with the requested details.";

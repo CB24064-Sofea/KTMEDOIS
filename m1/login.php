@@ -18,9 +18,13 @@ if (file_exists($db_path)) {
 
 /** @var mysqli $conn */
 
-// If vendor session is already running, bypass authentication form entirely
+// If already authenticated, redirect to the appropriate dashboard
 if (isset($_SESSION['vendor_auth'])) {
     header("Location: vendor_dashboard.php");
+    exit();
+}
+if (isset($_SESSION['staff_auth'])) {
+    header("Location: ktm_dashboard.php");
     exit();
 }
 
@@ -39,47 +43,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($email) || empty($password)) {
         $error = "Email and Password are required.";
     } else {
-        // 1. First, check the STAFF table
-        $stmt = $conn->prepare("SELECT staff_ID, staff_name, email, password, role FROM ktmb_staff WHERE email = ? LIMIT 1");
+        $stmt = $conn->prepare(
+            "SELECT UserID, UserName, email, password, company_name, status, role
+             FROM user
+             WHERE email = ?
+             LIMIT 1"
+        );
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $user = $stmt->get_result()->fetch_assoc();
-        $isStaff = true;
 
-        // 2. If not staff, check the SUPPLIER table
-        if (!$user) {
-            $stmt = $conn->prepare("SELECT supplier_ID, company_name, email, password, status FROM supplier WHERE email = ? LIMIT 1");
-            $stmt->bind_param("s", $email);
-            $stmt->execute();
-            $user = $stmt->get_result()->fetch_assoc();
-            $isStaff = false;
-        }
+        $passwordValid = $user && (
+            password_verify($password, $user['password'])
+            || hash_equals($user['password'], $password)
+        );
 
-        if ($user && password_verify($password, $user['password'])) {
-            if ($isStaff) {
-                // STAFF SESSION
-                $_SESSION['user_auth'] = [
-                    "id"    => $user['staff_ID'],
-                    "name"  => $user['staff_name'],
-                    "role"  => $user['role'],
-                    "type"  => "staff"
-                ];
-                header("Location: staff_dashboard.php");
+        if ($passwordValid) {
+            $status = strtolower(trim($user['status'] ?? ''));
+            if ($status !== '' && $status !== 'active') {
+                $error = "Account inactive. Please contact administration.";
             } else {
-                // VENDOR SESSION
-                if (strtoupper($user['status']) === 'ACTIVE') {
-                    $_SESSION['user_auth'] = [
-                        "id"    => $user['supplier_ID'],
-                        "name"  => $user['company_name'],
-                        "role"  => "vendor",
-                        "type"  => "vendor"
+                $staffRoles = ['Administrator', 'Finance Officer', 'Procurement Officer'];
+                $role = trim($user['role'] ?? '');
+
+                $_SESSION['user_logged_in'] = true;
+                $_SESSION['user_name'] = $user['UserName'];
+                $_SESSION['user_role'] = $role !== '' ? $role : 'Vendor';
+
+                if (in_array($role, $staffRoles, true)) {
+                    $_SESSION['staff_auth'] = [
+                        "staff_id" => (string) $user['UserID'],
+                        "name"     => $user['UserName'],
+                        "email"    => $user['email'],
+                        "sub_role" => $role,
+                        "role"     => $role
+                    ];
+                    $_SESSION['staff_id'] = (string) $user['UserID'];
+                    $_SESSION['user_id'] = (string) $user['UserID'];
+                    $_SESSION['current_module'] = 'staff';
+                    header("Location: ktm_dashboard.php");
+                } else {
+                    $_SESSION['vendor_auth'] = [
+                        "supplier_id"  => (string) $user['UserID'],
+                        "company_name" => $user['company_name'] ?? $user['UserName'],
+                        "email"        => $user['email']
                     ];
                     header("Location: vendor_dashboard.php");
-                } else {
-                    $error = "Account inactive. Please contact administration.";
                 }
+                exit();
             }
-            exit();
         } else {
             $error = "Invalid email or password.";
         }

@@ -37,9 +37,14 @@ class AuditController {
 
     // ── fetchLogData() — SDD_CLS_406 ─────────────────────────────────────────
     // Retrieves audit trail items matching explicit filter variables.
-    public function fetchLogData($filterQuery = '') {
+    public function fetchLogData($filterQuery = '', $limit = 0, $offset = 0) {
         $this->filterQuery = $filterQuery;
-        return $this->auditModel->fetchLogData($filterQuery);
+        return $this->auditModel->fetchLogData($filterQuery, $limit, $offset);
+    }
+
+    // ── countLogs() — for pagination ─────────────────────────────────────────
+    public function countLogs($filterQuery = '') {
+        return $this->auditModel->countLogs($filterQuery);
     }
 
     // ── getAuditStats() — for auditLogUI stat cards ───────────────────────────

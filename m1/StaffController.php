@@ -40,11 +40,23 @@ class StaffController {
 
         // Return standardized, sanitized metadata array
         return [
-            'staff_ID' => trim($currentStaff['staff_ID']),
+            'staff_ID' => trim((string) $currentStaff['staff_ID']),
             'name'     => htmlspecialchars(trim($currentStaff['staff_name'])),
-            'email'    => htmlspecialchars(trim($currentStaff['email'])),
-            'role'     => trim($currentStaff['role']) // Expected values: 'Administrator', 'Finance Reviewer', 'KTM Staff'
+            'email'    => htmlspecialchars(trim($currentStaff['email'] ?? '')),
+            'role'     => trim($currentStaff['role'] ?? '')
         ];
+    }
+
+    /**
+     * Restrict a page to specific staff roles.
+     */
+    public function requireStaffRoles(array $sessionData, array $allowedRoles) {
+        $staff = $this->enforceActiveSessionGuard($sessionData);
+        if (!in_array($staff['role'], $allowedRoles, true)) {
+            header("Location: ktm_dashboard.php?error=" . urlencode("You do not have permission to access that page."));
+            exit();
+        }
+        return $staff;
     }
 
     /**
@@ -74,8 +86,14 @@ class StaffController {
                 "staff_id" => $staff['staff_ID'],
                 "name"     => $staff['staff_name'],
                 "email"    => $staff['email'],
-                "sub_role" => $staff['role']
+                "sub_role" => $staff['role'],
+                "role"     => $staff['role']
             ];
+            $_SESSION['staff_id'] = $staff['staff_ID'];
+            $_SESSION['user_id'] = $staff['staff_ID'];
+            $_SESSION['user_logged_in'] = true;
+            $_SESSION['user_name'] = $staff['staff_name'];
+            $_SESSION['user_role'] = $staff['role'];
             $_SESSION['current_module'] = 'staff';
 
             header("Location: ktm_dashboard.php");

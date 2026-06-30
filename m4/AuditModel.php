@@ -33,37 +33,54 @@ class AuditModel {
     }
 
     // ── fetchLogData() — SDD_CLS_403 auditLogUI ──────────────────────────────
-    // Returns audit log entries with optional search filter.
-    public function fetchLogData($search = '') {
+    // Returns audit log entries with optional search filter and pagination.
+    public function fetchLogData($search = '', $limit = 0, $offset = 0) {
+        $where = '';
         if (!empty($search)) {
-            $safe = $this->db->real_escape_string($search);
-            $sql = "SELECT a.log_ID, a.staff_ID, a.invoice_ID, a.action,
-                           a.record_ID, a.timestamp,
-                           k.staff_name, i.invoice_num
-                    FROM audit_log a
-                    INNER JOIN ktmb_staff k ON a.staff_ID  = k.staff_ID
-                    INNER JOIN invoice    i ON a.invoice_ID = i.invoice_ID
-                    WHERE a.staff_ID LIKE '%$safe%' OR i.invoice_num LIKE '%$safe%'
-                    ORDER BY a.timestamp DESC";
-        } else {
-            $sql = "SELECT a.log_ID, a.staff_ID, a.invoice_ID, a.action,
-                           a.record_ID, a.timestamp,
-                           k.staff_name, i.invoice_num
-                    FROM audit_log a
-                    INNER JOIN ktmb_staff k ON a.staff_ID  = k.staff_ID
-                    INNER JOIN invoice    i ON a.invoice_ID = i.invoice_ID
-                    ORDER BY a.timestamp DESC";
+            $safe  = $this->db->real_escape_string($search);
+            $where = "WHERE a.staff_ID LIKE '%$safe%'
+                         OR i.invoice_num LIKE '%$safe%'
+                         OR k.staff_name LIKE '%$safe%'
+                         OR a.action LIKE '%$safe%'";
         }
+        $limitClause = ($limit > 0) ? "LIMIT $limit OFFSET $offset" : '';
+        $sql = "SELECT a.log_ID, a.staff_ID, a.invoice_ID, a.action,
+                       a.record_ID, a.timestamp,
+                       k.staff_name, i.invoice_num
+                FROM audit_log a
+                INNER JOIN ktmb_staff k ON a.staff_ID  = k.staff_ID
+                INNER JOIN invoice    i ON a.invoice_ID = i.invoice_ID
+                $where
+                ORDER BY a.timestamp DESC $limitClause";
         return $this->db->query($sql);
+    }
+
+    // ── countLogs() — for pagination ─────────────────────────────────────────
+    public function countLogs($search = '') {
+        $where = '';
+        if (!empty($search)) {
+            $safe  = $this->db->real_escape_string($search);
+            $where = "WHERE a.staff_ID LIKE '%$safe%'
+                         OR i.invoice_num LIKE '%$safe%'
+                         OR k.staff_name LIKE '%$safe%'
+                         OR a.action LIKE '%$safe%'";
+        }
+        $sql = "SELECT COUNT(*) as c
+                FROM audit_log a
+                INNER JOIN ktmb_staff k ON a.staff_ID  = k.staff_ID
+                INNER JOIN invoice    i ON a.invoice_ID = i.invoice_ID
+                $where";
+        return (int)$this->db->query($sql)->fetch_assoc()['c'];
     }
 
     // ── fetchAuditStats() — dashboard stat cards for auditLogUI ─────────────
     public function fetchAuditStats() {
+        $q = function($sql) { return $this->db->query($sql)->fetch_assoc()['c']; };
         return [
-            'total_logs'  => $this->db->query("SELECT COUNT(*) as c FROM audit_log")->fetch_assoc()['c'],
-            'approved_td' => $this->db->query("SELECT COUNT(*) as c FROM audit_log WHERE action='Verified' AND DATE(timestamp)=CURDATE()")->fetch_assoc()['c'],
-            'rejected_td' => $this->db->query("SELECT COUNT(*) as c FROM audit_log WHERE action='Rejected' AND DATE(timestamp)=CURDATE()")->fetch_assoc()['c'],
-            'officers'    => $this->db->query("SELECT COUNT(*) as c FROM ktmb_staff WHERE role='Procurement Officer'")->fetch_assoc()['c'],
+            'total_logs'  => $q("SELECT COUNT(*) as c FROM audit_log"),
+            'approved_td' => $q("SELECT COUNT(*) as c FROM audit_log WHERE action='Verified' AND DATE(timestamp)=CURDATE()"),
+            'rejected_td' => $q("SELECT COUNT(*) as c FROM audit_log WHERE action='Rejected' AND DATE(timestamp)=CURDATE()"),
+            'officers'    => $q("SELECT COUNT(*) as c FROM ktmb_staff WHERE role='Procurement Officer'"),
         ];
     }
 
