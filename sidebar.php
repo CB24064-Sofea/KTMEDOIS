@@ -308,7 +308,7 @@ if ($userRole !== 'Guest' && $userRole !== 'Supplier') {
                        <span class="nav-text">Review DO</span>
                     </a>
                 </li>
-                <div class="nav-section-title">Invoice Review & Approval (M04)</div>
+                <div class="nav-section-title">Invoice Review & Approval </div>
                 <li>
                     <a href="/KTMEDOIS/m4/review_dashboard.php?status=Submitted" class="nav-item <?php echo ($current_page == 'review_dashboard.php' && ($_GET['status'] ?? '') === 'Submitted') ? 'active' : ''; ?>">
                        <span class="nav-icon">📄</span>
@@ -349,7 +349,7 @@ if ($userRole !== 'Guest' && $userRole !== 'Supplier') {
                        <span class="nav-text">Finance Dashboard</span>
                     </a>
                 </li>
-                <div class="nav-section-title">Claims Management (M04)</div>
+                <div class="nav-section-title">Claims Management </div>
                 <li>
                     <a href="/KTMEDOIS/m4/review_dashboard.php?status=<?php echo urlencode('Finance Review'); ?>" class="nav-item <?php echo ($current_page == 'review_dashboard.php' && ($_GET['status'] ?? '') === 'Finance Review') ? 'active' : ''; ?>">
                        <span class="nav-icon">📥</span>
@@ -362,7 +362,7 @@ if ($userRole !== 'Guest' && $userRole !== 'Supplier') {
                        <span class="nav-text">Review History</span>
                     </a>
                 </li>
-                <div class="nav-section-title">Payments (M04)</div>
+                <div class="nav-section-title">Payments </div>
                 <li>
                     <a href="/KTMEDOIS/m4/approve_payment.php" class="nav-item <?php echo ($current_page == 'approve_payment.php') ? 'active' : ''; ?>">
                        <span class="nav-icon">💲</span>
@@ -385,7 +385,7 @@ if ($userRole !== 'Guest' && $userRole !== 'Supplier') {
                        <span class="nav-text">Dashboard — Monitor Activities</span>
                     </a>
                 </li>
-                <div class="nav-section-title">User &amp; Review Control (M04)</div>
+                <div class="nav-section-title">User &amp; Review Control </div>
                 <li>
                     <a href="/KTMEDOIS/m1/admin_vendor_list.php" class="nav-item <?php echo ($current_page == 'admin_vendor_list.php') ? 'active' : ''; ?>">
                        <span class="nav-icon">👤</span>
