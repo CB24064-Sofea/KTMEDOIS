@@ -23,6 +23,26 @@ if (isset($_SESSION['vendor_auth'])) {
     $userRole = trim($_SESSION['staff_auth']['sub_role'] ?? $_SESSION['staff_auth']['role'] ?? 'Staff');
     $userName = $_SESSION['staff_auth']['name'] ?? 'KTMB Staff';
 }
+
+// ── Normalise the staff role into one of 3 workspace groups ────────────────────
+// The underlying DB stores several equivalent role labels across the different
+// login flows ('Procurement Officer', 'KTM Staff', 'Staff', 'Administrator',
+// 'Manager', 'Finance Officer', ...). Matching case-insensitively on keywords
+// here — instead of a brittle exact-string match — guarantees every staff
+// member lands on the correct sidebar regardless of which login page /
+// table populated their session.
+$staffRoleGroup = null; // 'officer' | 'finance' | 'admin' | null
+if ($userRole !== 'Guest' && $userRole !== 'Supplier') {
+    $roleLower = strtolower($userRole);
+    if (strpos($roleLower, 'admin') !== false || strpos($roleLower, 'manager') !== false) {
+        $staffRoleGroup = 'admin';
+    } elseif (strpos($roleLower, 'finance') !== false) {
+        $staffRoleGroup = 'finance';
+    } else {
+        // Catches 'Procurement Officer', 'KTM Staff', generic 'Staff', etc.
+        $staffRoleGroup = 'officer';
+    }
+}
 ?>
 <style>
     :root {
@@ -273,122 +293,132 @@ if (isset($_SESSION['vendor_auth'])) {
                     </a>
                 </li>
 
-            <?php elseif ($userRole === 'Procurement Officer' || $userRole === 'Staff'): ?>
+            <?php elseif ($staffRoleGroup === 'officer'): ?>
                 <div class="nav-section-title">KTM Officer Workspace</div>
                 <li>
-                    <a href="/KTMEDOIS/m1/admin_vendor_list.php" class="nav-item <?php echo ($current_page == 'admin_vendor_list.php') ? 'active' : ''; ?>">
-                       <span class="nav-icon"></span>
-                       <span class="nav-text">Supplier Directory Master</span>
+                    <a href="/KTMEDOIS/m4/review_dashboard.php" class="nav-item <?php echo in_array($current_page, ['review_dashboard.php', 'review_workspace.php']) ? 'active' : ''; ?>">
+                       <span class="nav-icon">🏠</span>
+                       <span class="nav-text">Dashboard</span>
                     </a>
                 </li>
                 <div class="nav-section-title">DO Verification (M02)</div>
                 <li>
                     <a href="/KTMEDOIS/m4/do_list.php" class="nav-item <?php echo in_array($current_page, ['do_list.php', 'do_details.php']) ? 'active' : ''; ?>">
-                       <span class="nav-icon"></span>
-                       <span class="nav-text">DO Inspections List — Review DO</span>
+                       <span class="nav-icon">📦</span>
+                       <span class="nav-text">Review DO</span>
                     </a>
                 </li>
                 <div class="nav-section-title">Invoice Review & Approval (M04)</div>
                 <li>
-                    <a href="/KTMEDOIS/m4/review_dashboard.php" class="nav-item <?php echo in_array($current_page, ['review_dashboard.php', 'review_workspace.php']) ? 'active' : ''; ?>">
-                       <span class="nav-icon">🏠</span>
-                       <span class="nav-text">Dashboard &amp; Review Invoices</span>
+                    <a href="/KTMEDOIS/m4/review_dashboard.php?status=Submitted" class="nav-item <?php echo ($current_page == 'review_dashboard.php' && ($_GET['status'] ?? '') === 'Submitted') ? 'active' : ''; ?>">
+                       <span class="nav-icon">📄</span>
+                       <span class="nav-text">Review Invoice</span>
                     </a>
                 </li>
                 <li>
                     <a href="/KTMEDOIS/m4/assign_reviewer.php" class="nav-item <?php echo ($current_page == 'assign_reviewer.php') ? 'active' : ''; ?>">
-                       <span class="nav-icon"></span>
+                       <span class="nav-icon">🧑‍💼</span>
                        <span class="nav-text">Assign Reviewer</span>
                     </a>
                 </li>
                 <li>
+                    <a href="/KTMEDOIS/m4/forward_to_finance.php" class="nav-item <?php echo ($current_page == 'forward_to_finance.php') ? 'active' : ''; ?>">
+                       <span class="nav-icon">📤</span>
+                       <span class="nav-text">Forward Invoice to Finance</span>
+                    </a>
+                </li>
+                <li>
                     <a href="/KTMEDOIS/m4/review_history.php" class="nav-item <?php echo ($current_page == 'review_history.php') ? 'active' : ''; ?>">
-                       <span class="nav-icon"></span>
+                       <span class="nav-icon">🕘</span>
                        <span class="nav-text">Review History</span>
                     </a>
                 </li>
+                <div class="nav-section-title">Alerts</div>
                 <li>
                     <a href="/KTMEDOIS/m4/notifications.php" class="nav-item <?php echo ($current_page == 'notifications.php') ? 'active' : ''; ?>">
                        <span class="nav-icon">🔔</span>
-                       <span class="nav-text">Notifications</span>
+                       <span class="nav-text">View Notifications</span>
                     </a>
                 </li>
 
-            <?php elseif (strpos(strtolower($userRole), 'finance') !== false): ?>
-                <div class="nav-section-title">Finance Core Division</div>
+            <?php elseif ($staffRoleGroup === 'finance'): ?>
+                <div class="nav-section-title">Finance Officer Workspace</div>
                 <li>
-                    <a href="/KTMEDOIS/m4/review_dashboard.php" class="nav-item <?php echo ($current_page == 'review_dashboard.php') ? 'active' : ''; ?>">
+                    <a href="/KTMEDOIS/m4/review_dashboard.php" class="nav-item <?php echo ($current_page == 'review_dashboard.php' && ($_GET['view'] ?? '') !== 'payments') ? 'active' : ''; ?>">
                        <span class="nav-icon">🏠</span>
                        <span class="nav-text">Finance Dashboard</span>
                     </a>
                 </li>
                 <div class="nav-section-title">Claims Management (M04)</div>
                 <li>
-                    <a href="/KTMEDOIS/m4/review_workspace.php" class="nav-item <?php echo ($current_page == 'review_workspace.php') ? 'active' : ''; ?>">
-                       <span class="nav-icon"></span>
-                       <span class="nav-text">Invoice Clearing Hub — Review Invoice</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/KTMEDOIS/m4/review_dashboard.php?view=payments" class="nav-item <?php echo ($current_page == 'review_dashboard.php' && ($_GET['view'] ?? '') === 'payments') ? 'active' : ''; ?>">
-                       <span class="nav-icon">💲</span>
-                       <span class="nav-text">Process Payments</span>
+                    <a href="/KTMEDOIS/m4/review_dashboard.php?status=<?php echo urlencode('Finance Review'); ?>" class="nav-item <?php echo ($current_page == 'review_dashboard.php' && ($_GET['status'] ?? '') === 'Finance Review') ? 'active' : ''; ?>">
+                       <span class="nav-icon">📥</span>
+                       <span class="nav-text">Receive &amp; Review Invoices</span>
                     </a>
                 </li>
                 <li>
                     <a href="/KTMEDOIS/m4/review_history.php" class="nav-item <?php echo ($current_page == 'review_history.php') ? 'active' : ''; ?>">
-                       <span class="nav-icon"></span>
-                       <span class="nav-text">Disbursement Records</span>
+                       <span class="nav-icon">🕘</span>
+                       <span class="nav-text">Review History</span>
                     </a>
                 </li>
+                <div class="nav-section-title">Payments (M04)</div>
+                <li>
+                    <a href="/KTMEDOIS/m4/approve_payment.php" class="nav-item <?php echo ($current_page == 'approve_payment.php') ? 'active' : ''; ?>">
+                       <span class="nav-icon">💲</span>
+                       <span class="nav-text">Approve Payment Status</span>
+                    </a>
+                </li>
+                <div class="nav-section-title">Alerts</div>
                 <li>
                     <a href="/KTMEDOIS/m4/notifications.php" class="nav-item <?php echo ($current_page == 'notifications.php') ? 'active' : ''; ?>">
                        <span class="nav-icon">🔔</span>
-                       <span class="nav-text">Notifications</span>
+                       <span class="nav-text">View Notifications</span>
                     </a>
                 </li>
 
-            <?php elseif ($userRole === 'Administrator' || $userRole === 'Manager'): ?>
-                <div class="nav-section-title">System Controller</div>
+            <?php elseif ($staffRoleGroup === 'admin'): ?>
+                <div class="nav-section-title">Admin Workspace</div>
                 <li>
                     <a href="/KTMEDOIS/m4/review_dashboard.php" class="nav-item <?php echo ($current_page == 'review_dashboard.php') ? 'active' : ''; ?>">
                        <span class="nav-icon">🏠</span>
-                       <span class="nav-text">Operations Center Overview</span>
+                       <span class="nav-text">Dashboard — Monitor Activities</span>
                     </a>
                 </li>
-                <div class="nav-section-title">Review Workflow Control (M04)</div>
-                <li>
-                    <a href="/KTMEDOIS/m4/assign_reviewer.php" class="nav-item <?php echo ($current_page == 'assign_reviewer.php') ? 'active' : ''; ?>">
-                       <span class="nav-icon"></span>
-                       <span class="nav-text">Assign Reviewer</span>
-                    </a>
-                </li>
+                <div class="nav-section-title">User &amp; Review Control (M04)</div>
                 <li>
                     <a href="/KTMEDOIS/m1/admin_vendor_list.php" class="nav-item <?php echo ($current_page == 'admin_vendor_list.php') ? 'active' : ''; ?>">
                        <span class="nav-icon">👤</span>
-                       <span class="nav-text">User Account Management</span>
+                       <span class="nav-text">Manage User Accounts</span>
                     </a>
                 </li>
-                <div class="nav-section-title">Audits & Insights</div>
+                <li>
+                    <a href="/KTMEDOIS/m4/assign_reviewer.php" class="nav-item <?php echo ($current_page == 'assign_reviewer.php') ? 'active' : ''; ?>">
+                       <span class="nav-icon">🧑‍💼</span>
+                       <span class="nav-text">Assign Reviewer</span>
+                    </a>
+                </li>
+                <div class="nav-section-title">Audits &amp; Insights</div>
                 <li>
                     <a href="/KTMEDOIS/m4/audit_log.php" class="nav-item <?php echo ($current_page == 'audit_log.php') ? 'active' : ''; ?>">
-                       <span class="nav-icon"></span>
-                       <span class="nav-text">Core System Audit Logs</span>
+                       <span class="nav-icon">🗂️</span>
+                       <span class="nav-text">View Audit Logs</span>
                     </a>
                 </li>
                 <li>
                     <a href="/KTMEDOIS/m4/generate_report.php" class="nav-item <?php echo ($current_page == 'generate_report.php') ? 'active' : ''; ?>">
-                       <span class="nav-icon"></span>
+                       <span class="nav-icon">📊</span>
                        <span class="nav-text">Management Report</span>
                     </a>
                 </li>
+                <div class="nav-section-title">Alerts</div>
                 <li>
                     <a href="/KTMEDOIS/m4/notifications.php" class="nav-item <?php echo ($current_page == 'notifications.php') ? 'active' : ''; ?>">
                        <span class="nav-icon">🔔</span>
                        <span class="nav-text">System Alerts Broadcast</span>
                     </a>
                 </li>
-            
+
             <?php else: ?>
                 <li>
                     <a href="/KTMEDOIS/m1/login.php" class="nav-item active">
