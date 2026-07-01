@@ -274,7 +274,7 @@ if (isset($_SESSION['vendor_auth'])) {
                 </li>
 
             <?php elseif ($userRole === 'Procurement Officer' || $userRole === 'Staff'): ?>
-                <div class="nav-section-title">Procurement Desk</div>
+                <div class="nav-section-title">KTM Officer Workspace</div>
                 <li>
                     <a href="/KTMEDOIS/m1/admin_vendor_list.php" class="nav-item <?php echo ($current_page == 'admin_vendor_list.php') ? 'active' : ''; ?>">
                        <span class="nav-icon"></span>
@@ -285,13 +285,32 @@ if (isset($_SESSION['vendor_auth'])) {
                 <li>
                     <a href="/KTMEDOIS/m4/do_list.php" class="nav-item <?php echo in_array($current_page, ['do_list.php', 'do_details.php']) ? 'active' : ''; ?>">
                        <span class="nav-icon"></span>
-                       <span class="nav-text">DO Inspections List</span>
+                       <span class="nav-text">DO Inspections List — Review DO</span>
+                    </a>
+                </li>
+                <div class="nav-section-title">Invoice Review & Approval (M04)</div>
+                <li>
+                    <a href="/KTMEDOIS/m4/review_dashboard.php" class="nav-item <?php echo in_array($current_page, ['review_dashboard.php', 'review_workspace.php']) ? 'active' : ''; ?>">
+                       <span class="nav-icon">🏠</span>
+                       <span class="nav-text">Dashboard &amp; Review Invoices</span>
                     </a>
                 </li>
                 <li>
                     <a href="/KTMEDOIS/m4/assign_reviewer.php" class="nav-item <?php echo ($current_page == 'assign_reviewer.php') ? 'active' : ''; ?>">
                        <span class="nav-icon"></span>
-                       <span class="nav-text">Assign Inspector Duties</span>
+                       <span class="nav-text">Assign Reviewer</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/KTMEDOIS/m4/review_history.php" class="nav-item <?php echo ($current_page == 'review_history.php') ? 'active' : ''; ?>">
+                       <span class="nav-icon"></span>
+                       <span class="nav-text">Review History</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/KTMEDOIS/m4/notifications.php" class="nav-item <?php echo ($current_page == 'notifications.php') ? 'active' : ''; ?>">
+                       <span class="nav-icon">🔔</span>
+                       <span class="nav-text">Notifications</span>
                     </a>
                 </li>
 
@@ -299,7 +318,7 @@ if (isset($_SESSION['vendor_auth'])) {
                 <div class="nav-section-title">Finance Core Division</div>
                 <li>
                     <a href="/KTMEDOIS/m4/review_dashboard.php" class="nav-item <?php echo ($current_page == 'review_dashboard.php') ? 'active' : ''; ?>">
-                       <span class="nav-icon"></span>
+                       <span class="nav-icon">🏠</span>
                        <span class="nav-text">Finance Dashboard</span>
                     </a>
                 </li>
@@ -307,7 +326,13 @@ if (isset($_SESSION['vendor_auth'])) {
                 <li>
                     <a href="/KTMEDOIS/m4/review_workspace.php" class="nav-item <?php echo ($current_page == 'review_workspace.php') ? 'active' : ''; ?>">
                        <span class="nav-icon"></span>
-                       <span class="nav-text">Invoice Clearing Hub</span>
+                       <span class="nav-text">Invoice Clearing Hub — Review Invoice</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/KTMEDOIS/m4/review_dashboard.php?view=payments" class="nav-item <?php echo ($current_page == 'review_dashboard.php' && ($_GET['view'] ?? '') === 'payments') ? 'active' : ''; ?>">
+                       <span class="nav-icon">💲</span>
+                       <span class="nav-text">Process Payments</span>
                     </a>
                 </li>
                 <li>
@@ -316,13 +341,32 @@ if (isset($_SESSION['vendor_auth'])) {
                        <span class="nav-text">Disbursement Records</span>
                     </a>
                 </li>
+                <li>
+                    <a href="/KTMEDOIS/m4/notifications.php" class="nav-item <?php echo ($current_page == 'notifications.php') ? 'active' : ''; ?>">
+                       <span class="nav-icon">🔔</span>
+                       <span class="nav-text">Notifications</span>
+                    </a>
+                </li>
 
             <?php elseif ($userRole === 'Administrator' || $userRole === 'Manager'): ?>
                 <div class="nav-section-title">System Controller</div>
                 <li>
                     <a href="/KTMEDOIS/m4/review_dashboard.php" class="nav-item <?php echo ($current_page == 'review_dashboard.php') ? 'active' : ''; ?>">
-                       <span class="nav-icon"></span>
+                       <span class="nav-icon">🏠</span>
                        <span class="nav-text">Operations Center Overview</span>
+                    </a>
+                </li>
+                <div class="nav-section-title">Review Workflow Control (M04)</div>
+                <li>
+                    <a href="/KTMEDOIS/m4/assign_reviewer.php" class="nav-item <?php echo ($current_page == 'assign_reviewer.php') ? 'active' : ''; ?>">
+                       <span class="nav-icon"></span>
+                       <span class="nav-text">Assign Reviewer</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/KTMEDOIS/m1/admin_vendor_list.php" class="nav-item <?php echo ($current_page == 'admin_vendor_list.php') ? 'active' : ''; ?>">
+                       <span class="nav-icon">👤</span>
+                       <span class="nav-text">User Account Management</span>
                     </a>
                 </li>
                 <div class="nav-section-title">Audits & Insights</div>
@@ -340,7 +384,7 @@ if (isset($_SESSION['vendor_auth'])) {
                 </li>
                 <li>
                     <a href="/KTMEDOIS/m4/notifications.php" class="nav-item <?php echo ($current_page == 'notifications.php') ? 'active' : ''; ?>">
-                       <span class="nav-icon"></span>
+                       <span class="nav-icon">🔔</span>
                        <span class="nav-text">System Alerts Broadcast</span>
                     </a>
                 </li>
