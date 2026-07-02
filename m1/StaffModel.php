@@ -17,22 +17,16 @@ class StaffModel {
      * @return array|null Returns associative data row array if found, null otherwise
      */
     public function getStaffProfile($staffId) {
-        $sql = "SELECT UserID AS staff_ID, UserName AS staff_name, email, role, password
-                FROM user
-                WHERE CAST(UserID AS CHAR) = TRIM(?)
-                LIMIT 1";
-
-        if ($stmt = $this->db->prepare($sql)) {
-            $stmt->bind_param("s", $staffId);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            if ($result && ($row = $result->fetch_assoc())) {
-                $stmt->close();
-                return $row;
-            }
-            $stmt->close();
-        }
-
+        // NOTE: `ktmb_staff` (staff_ID, staff_name, email, password, role) is
+        // the single canonical staff table used across the whole app —
+        // m1/staff_login.php authenticates against it, and every Module 4
+        // query (AuditModel, assign_reviewer, review_history, audit_log)
+        // joins against it. A previous version of this method attempted a
+        // first-pass query against a `user` table using columns
+        // (UserID/UserName/role) that don't exist on that table; since
+        // mysqli throws on invalid SQL by default in PHP 8.1+, that dead
+        // code path crashed every request before ever reaching the
+        // (correct) query below. It has been removed.
         $sql = "SELECT staff_ID, staff_name, email, role, password 
                 FROM ktmb_staff 
                 WHERE TRIM(staff_ID) = TRIM(?) 
