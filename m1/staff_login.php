@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Email and Password are required.";
     } else {
         // Querying ktmb_staff table
-        $sql = "SELECT staff_ID, staff_name, email, password 
+        $sql = "SELECT staff_ID, staff_name, email, password, role
                 FROM ktmb_staff 
                 WHERE UPPER(TRIM(email)) = UPPER(?) 
                 LIMIT 1";
@@ -48,14 +48,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Verify password using hash
             if ($staff && password_verify($password, $staff['password'])) {
                 
-                // Populate staff authorization sessions
+                // Populate staff authorization sessions.
+                // IMPORTANT: "role" / "sub_role" must carry the REAL role
+                // fetched from ktmb_staff (Procurement Officer / Finance
+                // Officer / Administrator) — sidebar.php uses this value
+                // to decide which of the three staff sidebars to render.
+                // Hardcoding "Staff" here previously broke that routing:
+                // every staff member always fell through to the generic
+                // KTM Officer sidebar regardless of their real role.
                 $_SESSION['staff_auth'] = [
                     "staff_id"   => $staff['staff_ID'],
+                    "staff_ID"   => $staff['staff_ID'],
+                    "name"       => $staff['staff_name'],
                     "staff_name" => $staff['staff_name'],
                     "email"      => $staff['email'],
-                    "role"       => "Staff"
+                    "sub_role"   => $staff['role'],
+                    "role"       => $staff['role']
                 ];
-                
+                $_SESSION['staff_id']       = $staff['staff_ID'];
+                $_SESSION['user_id']        = $staff['staff_ID'];
+                $_SESSION['user_logged_in'] = true;
+                $_SESSION['user_name']      = $staff['staff_name'];
+                $_SESSION['user_role']      = $staff['role'];
                 $_SESSION['current_module'] = 'staff';
 
                 $stmt->close();
